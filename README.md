@@ -1,5 +1,5 @@
 # MaximatorZXSpectrum
-Quartus ZX Spectrum 16k project for Maximator (MAX10) board
+Quartus ZX Spectrum 16k project for KAMAMI Maximator (MAX10) board
 
 A-Z80 processor implementation repository, along with ULA and ZX Spectrum de1 implementation:
 

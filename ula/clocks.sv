@@ -25,9 +25,11 @@
 //============================================================================
 module clocks
 (
-    input wire clk_ula,         // Input ULA clock of 14 MHz
-    input wire turbo,           // Turbo speed (3.5 MHz x 2 = 7.0 MHz)
-    output reg clk_cpu          // Output 3.5 MHz CPU clock
+    input wire clk_main,         // Input clock of 28 MHz
+    input wire cpu_turbo,        // Turbo speed (2x)
+	 input wire ula_turbo,
+    output reg clk_cpu,          // Output 3.5/7 MHz CPU clock
+	 output wire clk_ula				// output 14/28
 );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,14 +37,24 @@ module clocks
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 reg [0:0] counter;
 
+reg clk_main_by2;
+
+always @(posedge clk_main)
+begin
+	clk_main_by2 <= ~clk_main_by2;
+
+end
+
+assign clk_ula = ula_turbo ? clk_main : clk_main_by2;
+
 // Note: In order to get to 3.5 MHz, the PLL needs to be set to generate 14 MHz
 // and then this divider-by-4 brings the effective clock down to 3.5 MHz
 // 1. always block at positive edge of clk_ula divides by 2
 // 2. counter flop further divides it by 2 unless the turbo mode is set
 always @(posedge clk_ula)
 begin
-    if (counter=='0 | turbo)
-        clk_cpu <= ~clk_cpu;
+    if (counter=='0 | cpu_turbo)
+		clk_cpu <= ~clk_cpu;
     counter <= counter - 1'b1;
 end
 

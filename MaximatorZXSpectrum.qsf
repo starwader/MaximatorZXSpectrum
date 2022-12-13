@@ -56,6 +56,73 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_global_assignment -name EXTERNAL_FLASH_FALLBACK_ADDRESS 00000000
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE "SINGLE COMP IMAGE WITH ERAM"
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+set_location_assignment PIN_E15 -to AUDIO_IN
+set_location_assignment PIN_E16 -to AUDIO_OUT
+set_location_assignment PIN_L3 -to CLOCK_10
+set_location_assignment PIN_R15 -to KEY_RESET
+set_location_assignment PIN_R16 -to LEDGTOP[3]
+set_location_assignment PIN_P16 -to LEDGTOP[2]
+set_location_assignment PIN_N16 -to LEDGTOP[1]
+set_location_assignment PIN_M16 -to LEDGTOP[0]
+set_location_assignment PIN_G15 -to PS2_CLK
+set_location_assignment PIN_J15 -to PS2_DAT
+set_location_assignment PIN_M1 -to VGA_B
+set_location_assignment PIN_N1 -to VGA_G
+set_location_assignment PIN_L1 -to VGA_HS
+set_location_assignment PIN_R1 -to VGA_R
+set_location_assignment PIN_J1 -to VGA_VS
+set_global_assignment -name ENABLE_DEVICE_WIDE_RESET ON
+set_location_assignment PIN_C15 -to INT_EN
+set_location_assignment PIN_L16 -to KEY_NMI
+set_location_assignment PIN_C16 -to TAPE_SOUND_EN
+set_location_assignment PIN_D15 -to CPU_TURBO_EN
+set_location_assignment PIN_D16 -to ULA_TURBO_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_VS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_R
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_HS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_G
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_B
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TAPE_SOUND_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDGTOP[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY_NMI
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY_RESET
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDGTOP[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDGTOP[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDGTOP[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_DAT
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_IN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_OUT
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_10
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to INT_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CPU_TURBO_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ULA_TURBO_EN
+set_global_assignment -name VERILOG_FILE ram16/ram16.v
+set_global_assignment -name QIP_FILE ram16/ram16.qip
+set_global_assignment -name VERILOG_FILE ula_pll/ula_pll.v
+set_global_assignment -name QIP_FILE ula_pll/ula_pll.qip
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/tmds_channel.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/source_product_description_info_frame.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/serializer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/packet_picker.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/packet_assembler.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/hdmi.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/auxiliary_video_information_info_frame.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/audio_sample_packet.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/audio_info_frame.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hdmi/audio_clock_regeneration_packet.sv
 set_global_assignment -name SYSTEMVERILOG_FILE MaximatorZXSpectrum.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ula/zx_kbd.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ula/video.sv
@@ -64,14 +131,6 @@ set_global_assignment -name SYSTEMVERILOG_FILE ula/ps2_kbd.sv
 set_global_assignment -name VHDL_FILE ula/i2s_intf.vhd
 set_global_assignment -name VHDL_FILE ula/i2c_loader.vhd
 set_global_assignment -name SYSTEMVERILOG_FILE ula/clocks.sv
-set_global_assignment -name VERILOG_FILE rom_ip/rom.v
-set_global_assignment -name QIP_FILE rom_ip/rom.qip
-set_global_assignment -name VERILOG_FILE ram16/ram16.v
-set_global_assignment -name QIP_FILE ram16/ram16.qip
-set_global_assignment -name VERILOG_FILE plls/pll10_27_24.v
-set_global_assignment -name QIP_FILE plls/pll10_27_24.qip
-set_global_assignment -name VERILOG_FILE plls/pll_ula.v
-set_global_assignment -name QIP_FILE plls/pll_ula.qip
 set_global_assignment -name VERILOG_FILE cpu/z80_top_direct_n.v
 set_global_assignment -name VERILOG_FILE cpu/sequencer.v
 set_global_assignment -name VERILOG_FILE cpu/resets.v
@@ -111,31 +170,5 @@ set_global_assignment -name VERILOG_FILE cpu/alu.v
 set_global_assignment -name VERILOG_FILE cpu/address_pins.v
 set_global_assignment -name VERILOG_FILE cpu/address_mux.v
 set_global_assignment -name VERILOG_FILE cpu/address_latch.v
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name ENABLE_OCT_DONE ON
-set_global_assignment -name EXTERNAL_FLASH_FALLBACK_ADDRESS 00000000
-set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
-set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE "SINGLE IMAGE WITH ERAM"
-set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
-set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
-set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
-set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
-set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
-set_location_assignment PIN_E15 -to AUDIO_IN
-set_location_assignment PIN_E16 -to AUDIO_OUT
-set_location_assignment PIN_L3 -to CLOCK_10
-set_location_assignment PIN_B10 -to KEY_RESET
-set_location_assignment PIN_R16 -to LEDGTOP[3]
-set_location_assignment PIN_P16 -to LEDGTOP[2]
-set_location_assignment PIN_N16 -to LEDGTOP[1]
-set_location_assignment PIN_M16 -to LEDGTOP[0]
-set_location_assignment PIN_G15 -to PS2_CLK
-set_location_assignment PIN_J15 -to PS2_DAT
-set_location_assignment PIN_M1 -to VGA_B
-set_location_assignment PIN_N1 -to VGA_G
-set_location_assignment PIN_L1 -to VGA_HS
-set_location_assignment PIN_R1 -to VGA_R
-set_location_assignment PIN_J1 -to VGA_VS
+set_global_assignment -name QIP_FILE rom16/rom16.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -21,15 +21,18 @@ module MaximatorZXSpectrum
 (
     //-------- Clocks and reset -----------------
     input wire CLOCK_10,            // Input clock 10 MHz
-    input wire KEY_RESET,                // RESET button; on DE1, keys are active low!
-    //input wire KEY1,                // NMI button
-	 
-    //-------- PS/2 Keyboard --------------------
-    input wire PS2_CLK,
-    input wire PS2_DAT,
+    input wire KEY_RESET,           // RESET button (pin nRES, R15)
+	 input wire KEY_NMI,					// NMI button (pin D0, L16)
+	 input wire ULA_TURBO_EN,			// switch 28/14 mHz ULA (pin D11, D16)
+	 input wire CPU_TURBO_EN,			// turbo switch 2x CPU freq (pin D10, D15)
+	 input wire INT_EN,					// interrupt switch (pin D12, C15)
+	 input wire TAPE_SOUND_EN,			// mix tape sound switch (pin D13, C16)
 
-	 input wire AUDIO_IN,
-	 output wire AUDIO_OUT,
+    //-------- PS/2 Keyboard --------------------
+    input wire PS2_CLK,					// PS2 CLK (pin D5, G15)
+    input wire PS2_DAT,					// PS2 DAT (pin D1, J15)
+	 input wire AUDIO_IN,				// AUDIO IN (pin D8, E15)
+	 output wire AUDIO_OUT,				// AUDIO OUT (pin D9, E16)
     //-------- VGA connector --------------------
     output wire VGA_R,
     output wire VGA_G,
@@ -42,43 +45,27 @@ module MaximatorZXSpectrum
     //output wire kempston_gnd,       // Helps mapping to DB9 cable
     //output wire [4:0] LEDG,         // Show the joystick state
 
-    //-------- Misc and debug -------------------
-    //input wire SW0,                 // ROM selection
-    //input wire SW1,                 // Enable/disable interrupts
-    //input wire SW2,                 // Turbo speed (3.5 MHz x 2 = 7.0 MHz)
-    //output wire [2:0] LEDR,         // Shows the switch selection
-    //output wire [31:0] GPIO_1,      // Exports CPU chip pins
     output wire [3:0] LEDGTOP       // Show additional information visually
 );
 `default_nettype none
-wire CLOCK_27;
-wire CLOCK_24;
-wire locked1;
 
-pll10_27_24 pll10inst(
-	.locked(locked1),
-	.inclk0(CLOCK_10),
-	.c0(CLOCK_27),
-	.c1(CLOCK_24));
-
+wire clk_vram;
 	
 wire reset;
 wire locked;
 //assign reset = locked & KEY0;
-assign reset = locked1 & locked & KEY_RESET;
+assign reset = locked & KEY_RESET;
 // Export selected pins to the extension connector
-//assign GPIO_1[15:0] = A[15:0];
-//assign GPIO_1[23:16] = D[7:0];
-//assign GPIO_1[31:24] = {nM1,nMREQ,nIORQ,nRD,nWR,nRFSH,nHALT,nBUSACK};
+
 //assign kempston_gnd = 0;
 
 //assign PS2_CLK_OUT = PS2_CLK;
 
 // Top 3 green LEDs show various states:
-assign LEDGTOP[3] = AUDIO_OUT;
-assign LEDGTOP[2] = !AUDIO_IN;              // Reserved for future use
-assign LEDGTOP[1] = beeper;         // Show the beeper state
-assign LEDGTOP[0] = !pressed;        // Show when a key is being pressed
+assign LEDGTOP[3] = ULA_TURBO_EN;
+assign LEDGTOP[2] = CPU_TURBO_EN;              // Reserved for future use
+assign LEDGTOP[1] = INT_EN;         // Show the beeper state
+assign LEDGTOP[0] = beeper;        // Show when a key is being pressed
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Internal buses and address map selection logic
@@ -102,9 +89,9 @@ assign io_we = nIORQ==0 && nRD==1 && nWR==0;
 wire [7:0] sram_data;
 wire [7:0] ROM_DQ;
 
-rom rom_inst(
+rom16 rom_inst(
 	.address(A[13:0]),
-	.clock(CLOCK_27), // todo
+	.clock(clk_vram), // todo
 	.q(ROM_DQ));
 
 // Memory map:
@@ -141,28 +128,9 @@ begin
     endcase
 end
 
-
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// 16K of the original ZX Spectrum ROM is in the flash at the address 0
-// 16K of The GOSH WONDERFUL ZX Spectrum ROM is in the flash following it
-//    http://www.wearmouth.demon.co.uk/gw03/gw03info.htm
-// SW0 selectes which ROM is going to be used by feeding the address bit 14
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-//assign FL_ADDR[13:0] = A[13:0];
-//assign FL_ADDR[14] = SW0;
-//assign LEDR[0] = SW0;           // Glow red when using alternate ROM
-//assign FL_ADDR[21:15] = 0;
-//assign FL_RST_N = KEY0;
-//assign FL_CE_N = 0;
-//assign FL_OE_N = 0;
-//assign FL_WE_N = 1;
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Instantiate 16K dual-port RAM
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-wire clk_vram;
 // "A" port is the CPU side, "B" port is the VGA image generator in the ULA
 ram16 ram16_(
     .clock      (clk_vram),     // RAM connects to the higher, pixel clock rate
@@ -192,24 +160,20 @@ ram16 ram16_(
 // Instantiate ULA
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wire clk_cpu;                   // Global CPU clock of 3.5 MHz
-//assign LEDR[2] = SW2;           // Glow red when in turbo mode (7.0 MHz)
 wire [12:0] vram_address;       // ULA video block requests a byte from the video RAM
 wire [7:0] vram_data;           // ULA video block reads a byte from the video RAM
 wire vs_nintr;                  // Generates a vertical retrace interrupt
 wire pressed;                   // Show that a key is being pressed
 wire beeper;                    // Show the beeper state
 
-//assign DBG_CPU_CLK = clk_vram;
-
-
 	
 ula ula_(
     //-------- Clocks and reset -----------------
-    .CLOCK_27 (CLOCK_27),       // Input clock 27 MHz
-    .CLOCK_24 (CLOCK_24),       // Input clock 24 MHz
     .CLOCK_10 (CLOCK_10),
-	 .turbo (0),               // Turbo speed (3.5 MHz x 2 = 7.0 MHz)
-    .clk_vram (clk_vram),
+	 .cpu_turbo (~CPU_TURBO_EN),               // Turbo speed (3.5 MHz x 2 = 7.0 MHz)
+	 .ula_turbo (~ULA_TURBO_EN),
+	 .tape_sound(~TAPE_SOUND_EN),
+	 .clk_vram (clk_vram),
     .nreset (reset),            // KEY0 is reset; on DE1, keys are active low!
     .locked (locked),           // PLL is locked signal
 
@@ -232,13 +196,6 @@ ula ula_(
     .pressed (pressed),
 
     //-------- Audio (Tape player) --------------
-    /*.I2C_SCLK (I2C_SCLK),
-    .I2C_SDAT (I2C_SDAT),
-    .AUD_XCK (AUD_XCK),
-    .AUD_ADCLRCK (AUD_ADCLRCK),
-    .AUD_DACLRCK (AUD_DACLRCK),
-    .AUD_BCLK (AUD_BCLK),
-    .AUD_DACDAT (AUD_DACDAT),*/
 	 .AUD_OUT (AUDIO_OUT),
 	 .AUD_IN (!AUDIO_IN),
     .beeper (beeper),
@@ -265,9 +222,8 @@ wire nHALT;
 wire nBUSACK;
 
 wire nWAIT = 1;
-wire nINT = vs_nintr;// SW1 disables interrupts and, hence, keyboard
-//assign LEDR[1] = SW1;               // Glow red when interrupts are *disabled*
-wire nNMI = 0;//KEY1;                   // Pressing KEY1 issues a NMI
+wire nINT = (INT_EN==0)? vs_nintr : '1;// SW1 disables interrupts and, hence, keyboard
+wire nNMI = KEY_NMI;                   // Pressing KEY1 issues a NMI
 wire nBUSRQ = 1;
 
 z80_top_direct_n z80_(

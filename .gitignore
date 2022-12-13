@@ -68,3 +68,4 @@ incremental_db/
 db/
 output_files/
 PLLJ_PLLSPE_INFO.txt
+greybox_tmp/

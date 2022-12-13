@@ -40,10 +40,10 @@ module MaximatorZXSpectrum
     output reg VGA_HS,
     output reg VGA_VS,
 	   // HDMI output
-	 output wire [2:0] HDMI_TX_p,
-	 output wire [2:0] HDMI_TX_n,
-	 output wire HDMI_CLK_p,
-	 output wire HDMI_CLK_n,
+	 output logic [2:0] HDMI_TX_p,
+	 output logic [2:0] HDMI_TX_n,
+	 output logic HDMI_CLK_p,
+	 output logic HDMI_CLK_n,
 
 	 inout HDMI_SDA,
 	 inout HDMI_SCL,
@@ -175,7 +175,10 @@ wire vs_nintr;                  // Generates a vertical retrace interrupt
 wire pressed;                   // Show that a key is being pressed
 wire beeper;                    // Show the beeper state
 
-	
+
+wire [2:0] HDMI_TX;
+wire HDMI_CLK;
+
 ula ula_(
     //-------- Clocks and reset -----------------
     .CLOCK_10 (CLOCK_10),
@@ -217,15 +220,37 @@ ula ula_(
     .VGA_VS (VGA_VS),
 	 
 	 //-------- HDMI -----------------------------
-	 .HDMI_TX(HDMI_TX_p),
-	 .HDMI_CLK(HDMI_CLK_p),
+	 .HDMI_TX(HDMI_TX),
+	 .HDMI_CLK(HDMI_CLK),
 	 .HDMI_SDA(HDMI_SDA),
 	 .HDMI_SCL(HDMI_SCL),
 	 .HDMI_HPD(HDMI_HPD),
 );
 
-assign HDMI_TX_n = !HDMI_TX_p;
-assign HDMI_CLK_n = !HDMI_CLK_p;
+
+DifferentialSignal diff1_(
+	.in(HDMI_TX[0]),
+	.p(HDMI_TX_p[0]),
+	.n(HDMI_TX_n[0]),
+);
+
+DifferentialSignal diff2_(
+	.in(HDMI_TX[1]),
+	.p(HDMI_TX_p[1]),
+	.n(HDMI_TX_n[1]),
+);
+
+DifferentialSignal diff3_(
+	.in(HDMI_TX[2]),
+	.p(HDMI_TX_p[2]),
+	.n(HDMI_TX_n[2]),
+);
+
+DifferentialSignal diff4_(
+	.in(HDMI_CLK),
+	.p(HDMI_CLK_p),
+	.n(HDMI_CLK_n),
+);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Instantiate A-Z80 CPU

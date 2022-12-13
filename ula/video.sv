@@ -185,19 +185,15 @@ wire [24:0] hdmi_rgb;
 logic [23:0] rgb = 24'd0;
 logic [9:0] cx, cy, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
 // Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
-always @(posedge clk_pix)
-  rgb <= {cx == 0 ? ~8'd0 : 8'd0, cy == 0 ? ~8'd0 : 8'd0, cx == screen_width - 1'd1 || cy == screen_width - 1'd1 ? ~8'd0 : 8'd0};
+//always @(posedge clk_pix)
+//  rgb <= {cx == 0 ? ~8'd0 : 8'd0, cy == 0 ? ~8'd0 : 8'd0, cx == screen_width - 1'd1 || cy == screen_width - 1'd1 ? ~8'd0 : 8'd0};
 
 
 always @(*) // always_comb
 begin
     case (cindex[3:0])
         // Normal color
-        0:   
-				begin 
-				   pix_rgb = 3'b000; // BLACK
-					
-				end
+        0:   pix_rgb = 3'b000; // BLACK
         1:   pix_rgb = 3'b001; // BLUE
         2:   pix_rgb = 3'b100; // RED
         3:   pix_rgb = 3'b101; // MAGENTA
@@ -217,31 +213,31 @@ begin
     endcase
 end
 
-/*
+
 always @(*) // always_comb
 begin
     case (cindex[3:0])
         // Normal color
-        0:   pix_rgb = 12'h000; // BLACK
-        1:   pix_rgb = 12'h00D; // BLUE
-        2:   pix_rgb = 12'hD00; // RED
-        3:   pix_rgb = 12'hD0D; // MAGENTA
-        4:   pix_rgb = 12'h0D0; // GREEN
-        5:   pix_rgb = 12'h0DD; // CYAN
-        6:   pix_rgb = 12'hDD0; // YELLOW
-        7:   pix_rgb = 12'hDDD; // WHITE
+        0:   rgb = 24'h000000; // BLACK
+        1:   rgb = 24'h0000DD; // BLUE
+        2:   rgb = 24'hD00000; // RED
+        3:   rgb = 24'hDD00DD; // MAGENTA
+        4:   rgb = 24'h00DD00; // GREEN
+        5:   rgb = 24'h00DDDD; // CYAN
+        6:   rgb = 24'hDDDD00; // YELLOW
+        7:   rgb = 24'hDDDDDD; // WHITE
         // "Bright" bit is set
-        8:   pix_rgb = 12'h000; // BLACK remains black
-        9:   pix_rgb = 12'h00F;
-        10:  pix_rgb = 12'hF00;
-        11:  pix_rgb = 12'hF0F;
-        12:  pix_rgb = 12'h0F0;
-        13:  pix_rgb = 12'h0FF;
-        14:  pix_rgb = 12'hFF0;
-        15:  pix_rgb = 12'hFFF;
+        8:   rgb = 24'h000000; // BLACK remains black
+        9:   rgb = 24'h0000FF;
+        10:  rgb = 24'hFF0000;
+        11:  rgb = 24'hFF00FF;
+        12:  rgb = 24'h00FF00;
+        13:  rgb = 24'h00FFFF;
+        14:  rgb = 24'hFFFF00;
+        15:  rgb = 24'hFFFFFF;
     endcase
 end
-*/
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // VGA RGB output drivers
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -253,12 +249,17 @@ hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(60), .AUDIO_RATE(48000), .AUDIO_BI
 	.clk_pixel_x5(clk_pix_x5), 
 	.clk_pixel(clk_pix), 
 	//.clk_audio(clk_audio), 
-	.rgb(hdmi_rgb), 
+	.rgb(rgb), 
 	//.audio_sample_word('{audio_sample_word_dampened, audio_sample_word_dampened}), 
 	.tmds(HDMI_TX), 
 	.tmds_clock(HDMI_CLK), 
 	.cx(cx), 
-	.cy(cy)
+	.cy(cy),
+  .frame_width(frame_width),
+  .frame_height(frame_height),
+  .screen_width(screen_width),
+  .screen_height(screen_height),
+  .reset(0)
 	);
 
 endmodule

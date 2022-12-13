@@ -62,7 +62,13 @@ module ula
     output wire VGA_G,
     output wire VGA_B,
     output reg VGA_HS,
-    output reg VGA_VS
+    output reg VGA_VS,
+	 // HDMI output
+	 output [2:0] HDMI_TX,
+	 output HDMI_CLK,
+	 inout HDMI_SDA,
+	 inout HDMI_SCL,
+	 input HDMI_HPD
 );
 `default_nettype none
 

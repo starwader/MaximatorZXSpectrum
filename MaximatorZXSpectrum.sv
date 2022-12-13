@@ -39,6 +39,15 @@ module MaximatorZXSpectrum
     output wire VGA_B,
     output reg VGA_HS,
     output reg VGA_VS,
+	   // HDMI output
+	 output wire [2:0] HDMI_TX_p,
+	 output wire [2:0] HDMI_TX_n,
+	 output wire HDMI_CLK_p,
+	 output wire HDMI_CLK_n,
+
+	 inout HDMI_SDA,
+	 inout HDMI_SCL,
+	 input HDMI_HPD,
 	 
     //-------- Atari joystick mapped as Kempston
     //input wire [4:0] kempston,      // Input with weak pull-up
@@ -205,9 +214,18 @@ ula ula_(
     .VGA_G (VGA_G),
     .VGA_B (VGA_B),
     .VGA_HS (VGA_HS),
-    .VGA_VS (VGA_VS)
+    .VGA_VS (VGA_VS),
+	 
+	 //-------- HDMI -----------------------------
+	 .HDMI_TX(HDMI_TX_p),
+	 .HDMI_CLK(HDMI_CLK_p),
+	 .HDMI_SDA(HDMI_SDA),
+	 .HDMI_SCL(HDMI_SCL),
+	 .HDMI_HPD(HDMI_HPD),
 );
 
+assign HDMI_TX_n = !HDMI_TX_p;
+assign HDMI_CLK_n = !HDMI_CLK_p;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Instantiate A-Z80 CPU

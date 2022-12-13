@@ -25,7 +25,8 @@
 //============================================================================
 module video
 (
-    input wire clk_pix,         // Input VGA pixel clock of 25.175 MHz
+    input wire clk_pix,         // Input pixel clock of 25.2 MHz
+    input wire clk_pix_x5,         // Input pixel clock x5
 
     output wire VGA_R,    // Output VGA R component
     output wire VGA_G,    // Output VGA G component
@@ -37,8 +38,20 @@ module video
     output wire [12:0] vram_address,// Address request to the video RAM
     input wire [7:0] vram_data, // Data read from the video RAM
 
-    input wire [2:0] border     // Border color index value
+    input wire [2:0] border,     // Border color index value
+
+	 // HDMI output
+	 output [2:0] HDMI_TX,
+	 output HDMI_CLK,
+	 inout HDMI_SDA,
+	 inout HDMI_SCL,
+	 input HDMI_HPD
+
 );
+
+
+
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // VGA 640x480 Sync pulses generator
@@ -167,11 +180,24 @@ assign cindex = screen_en? pixbit? {bright,ink} : {bright,paper} : {1'b0,border[
 wire [3:0] cindex;
 wire [2:0] pix_rgb;
 
+wire [24:0] hdmi_rgb;
+
+logic [23:0] rgb = 24'd0;
+logic [9:0] cx, cy, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
+// Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
+always @(posedge clk_pix)
+  rgb <= {cx == 0 ? ~8'd0 : 8'd0, cy == 0 ? ~8'd0 : 8'd0, cx == screen_width - 1'd1 || cy == screen_width - 1'd1 ? ~8'd0 : 8'd0};
+
+
 always @(*) // always_comb
 begin
     case (cindex[3:0])
         // Normal color
-        0:   pix_rgb = 3'b000; // BLACK
+        0:   
+				begin 
+				   pix_rgb = 3'b000; // BLACK
+					
+				end
         1:   pix_rgb = 3'b001; // BLUE
         2:   pix_rgb = 3'b100; // RED
         3:   pix_rgb = 3'b101; // MAGENTA
@@ -222,5 +248,17 @@ end
 assign VGA_R = disp_enable? pix_rgb[2]  : '0;
 assign VGA_G = disp_enable? pix_rgb[1]  : '0;
 assign VGA_B = disp_enable? pix_rgb[0]  : '0;
+
+hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(60), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi_(	
+	.clk_pixel_x5(clk_pix_x5), 
+	.clk_pixel(clk_pix), 
+	//.clk_audio(clk_audio), 
+	.rgb(hdmi_rgb), 
+	//.audio_sample_word('{audio_sample_word_dampened, audio_sample_word_dampened}), 
+	.tmds(HDMI_TX), 
+	.tmds_clock(HDMI_CLK), 
+	.cx(cx), 
+	.cy(cy)
+	);
 
 endmodule

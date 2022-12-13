@@ -74,7 +74,7 @@ wire clk_pix_x5;							// pixel clock x5
 wire clk_28;								
 wire clk_ula;                       // ULA master clock (14 MHz)
 
-assign clk_vram = clk_pix_x5;
+assign clk_vram = clk_28;
 
 ula_pll pll_( .locked(locked), .inclk0(CLOCK_10), .c0(clk_pix), .c1(clk_pix_x5), .c2(clk_28) );
 

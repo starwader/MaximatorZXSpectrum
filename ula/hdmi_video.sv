@@ -49,10 +49,16 @@ module hdmi_video
 
 
 logic [23:0] rgb = 24'd0;
-logic [9:0] vga_hc, vga_vc, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
+logic [9:0] cx,cy;
+//wire [9:0] vga_hc, vga_vc;
+ logic [9:0] screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
+
+wire [9:0] vga_hc = cx;// + (frame_width-screen_width);// + 10'd208;
+wire [9:0] vga_vc = cy;// + 10'd83;
+
 
 //todo rename vga_hc and etc
-reg [4:0] frame;                // Frame counter, used for the flash attribute
+reg [25:0] frame;                // Frame counter, used for the flash attribute
 
 
 // Generate interrupt at around the time of the vertical retrace start
@@ -62,14 +68,14 @@ assign vs_nintr = (vga_vc=='0 && vga_hc[9:7]=='0)? '0 : '1;
 // VGA active display area 640x480
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wire disp_enable;
-assign disp_enable = vga_hc>=144 && vga_hc<784 && vga_vc>=35 && vga_vc<515;
+assign disp_enable = vga_hc>=(0) && vga_hc<(640) && vga_vc>=(0) && vga_vc<(480);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Fetch screen data from RAM based on the current video counters
 // Spectrum resolution of 256x192 is line-doubled to 512x384 sub-frame
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wire screen_en;
-assign screen_en = vga_hc>=208 && vga_hc<720 && vga_vc>=83 && vga_vc<467;
+assign screen_en = vga_hc>=(64) && vga_hc<(576) && vga_vc>=(48) && vga_vc<(432);
 
 reg [7:0] bits_prefetch;        // Line bitmap data prefetch register
 reg [7:0] attr_prefetch;        // Attribute data prefetch register
@@ -81,9 +87,9 @@ reg [7:0] attr;                 // Current attribute data register
 wire [4:0] pix_x;               // Column 0-31
 wire [7:0] pix_y;               // Active display pixel Y coordinate
 // We use 16 clocks for 1 byte of display; also prefetch 1 byte (+16)
-wire [9:0] xd = vga_hc-10'd192; // =vga_hc-208+16
+wire [9:0] xd = vga_hc-10'd48;//-10'd192; // =vga_hc-208+16
 assign pix_x = xd[8:4];         // Effectively divide by 16
-wire [9:0] yd = vga_vc-10'd83;  // Lines are (also) doubled vertically
+wire [9:0] yd = vga_vc-10'd48;//-10'd83;  // Lines are (also) doubled vertically
 assign pix_y = yd[8:1];         // Effectively divide by 2
 
 
@@ -105,6 +111,21 @@ begin
                 end
     endcase
 end
+
+
+always @(posedge clk_pix)
+begin
+	 frame <= frame + 5'b1;
+
+	 /*case (vga_vc)
+        (1): begin
+
+                frame  <= frame + 5'b1;
+             end
+    endcase
+*/
+end
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pixel data generator
@@ -135,7 +156,7 @@ end
 
 assign flash  = attr[7];
 assign bright = attr[6];
-assign inverted = flash & frame[4];
+assign inverted = flash & frame[25];
 assign ink    = inverted? attr[5:3] : attr[2:0];
 assign paper  = inverted? attr[2:0] : attr[5:3];
 
@@ -156,13 +177,13 @@ begin
     case (cindex[3:0])
         // Normal color
         0:   rgb = 24'h000000; // BLACK
-        1:   rgb = 24'h0000E0; // BLUE
-        2:   rgb = 24'hE00000; // RED
-        3:   rgb = 24'hE000E0; // MAGENTA
-        4:   rgb = 24'h00E000; // GREEN
-        5:   rgb = 24'h00E0E0; // CYAN
-        6:   rgb = 24'hE0E000; // YELLOW
-        7:   rgb = 24'hE0E0E0; // WHITE
+        1:   rgb = 24'h00007F; // BLUE
+        2:   rgb = 24'h7F0000; // RED
+        3:   rgb = 24'h7F007F; // MAGENTA
+        4:   rgb = 24'h007F00; // GREEN
+        5:   rgb = 24'h007F7F; // CYAN
+        6:   rgb = 24'h7F7F00; // YELLOW
+        7:   rgb = 24'h7F7F7F; // WHITE
         // "Bright" bit is set
         8:   rgb = 24'h000000; // BLACK remains black
         9:   rgb = 24'h0000FF;
@@ -190,8 +211,8 @@ hdmi #(
 	//.audio_sample_word('{audio_sample_word_dampened, audio_sample_word_dampened}), 
 	.tmds(HDMI_TX), 
 	.tmds_clock(HDMI_CLK), 
-	.cx(vga_hc), 
-	.cy(vga_vc),
+	.cx(cx), 
+	.cy(cy),
   .frame_width(frame_width),
   .frame_height(frame_height),
   .screen_width(screen_width),

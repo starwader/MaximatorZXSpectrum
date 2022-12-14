@@ -1,13 +1,10 @@
 //============================================================================
 // Sinclair ZX Spectrum ULA
 //
-// This module contains video support.
+// This module contains hdmi video support.
 //
-// Note: There is no reset signal in this VGA design since all relevant
-//       counters will reset themselves within one display frame as the
-//       pixel clock keeps ticking.
-//
-//  Copyright (C) 2014-2016  Goran Devic
+//  Copyright (C) 2022-2023  Jakub Budrewicz (HDMI)
+//  Copyright (C) 2014-2016  Goran Devic (VGA)
 //
 //  This program is free software; you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License as published by the Free
@@ -23,7 +20,8 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //============================================================================
-module video
+
+module hdmi_video
 (
     input wire clk_pix,         // Input pixel clock of 25.2 MHz
     input wire clk_pix_x5,         // Input pixel clock x5
@@ -50,42 +48,12 @@ module video
 );
 
 
+logic [23:0] rgb = 24'd0;
+logic [9:0] vga_hc, vga_vc, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
 
-
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// VGA 640x480 Sync pulses generator
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-reg [9:0] vga_hc;               // Horizontal counter
-reg [9:0] vga_vc;               // Vertical counter
+//todo rename vga_hc and etc
 reg [4:0] frame;                // Frame counter, used for the flash attribute
 
-always @(posedge clk_pix)
-begin
-    vga_hc <= vga_hc + 10'b1;   // With each pixel clock, advance the horizontal counter
-    //---------------------------------------------------------------
-    // Horizontal sync and line end timings
-    //---------------------------------------------------------------
-    case (vga_hc)
-        96:     VGA_HS <= 1;
-        800: begin
-                VGA_HS <= 0;
-                vga_hc <= 0;
-                vga_vc <= vga_vc + 10'b1;
-             end
-    endcase
-    //---------------------------------------------------------------
-    // Vertical sync and display end timings
-    //---------------------------------------------------------------
-    case (vga_vc)
-        2:      VGA_VS <= 1;
-        525: begin
-                VGA_VS <= 0;
-                vga_vc <= 0;
-                frame  <= frame + 5'b1;
-             end
-    endcase
-end
 
 // Generate interrupt at around the time of the vertical retrace start
 assign vs_nintr = (vga_vc=='0 && vga_hc[9:7]=='0)? '0 : '1;
@@ -117,6 +85,7 @@ wire [9:0] xd = vga_hc-10'd192; // =vga_hc-208+16
 assign pix_x = xd[8:4];         // Effectively divide by 16
 wire [9:0] yd = vga_vc-10'd83;  // Lines are (also) doubled vertically
 assign pix_y = yd[8:1];         // Effectively divide by 2
+
 
 always @(posedge clk_pix)
 begin
@@ -180,38 +149,6 @@ assign cindex = screen_en? pixbit? {bright,ink} : {bright,paper} : {1'b0,border[
 wire [3:0] cindex;
 wire [2:0] pix_rgb;
 
-wire [24:0] hdmi_rgb;
-
-logic [23:0] rgb = 24'd0;
-logic [9:0] cx, cy, screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
-// Border test (left = red, top = green, right = blue, bottom = blue, fill = black)
-//always @(posedge clk_pix)
-//  rgb <= {cx == 0 ? ~8'd0 : 8'd0, cy == 0 ? ~8'd0 : 8'd0, cx == screen_width - 1'd1 || cy == screen_width - 1'd1 ? ~8'd0 : 8'd0};
-
-
-always @(*) // always_comb
-begin
-    case (cindex[3:0])
-        // Normal color
-        0:   pix_rgb = 3'b000; // BLACK
-        1:   pix_rgb = 3'b001; // BLUE
-        2:   pix_rgb = 3'b100; // RED
-        3:   pix_rgb = 3'b101; // MAGENTA
-        4:   pix_rgb = 3'b010; // GREEN
-        5:   pix_rgb = 3'b011; // CYAN
-        6:   pix_rgb = 3'b110; // YELLOW
-        7:   pix_rgb = 3'b111; // WHITE
-        // "Bright" bit is set
-        8:   pix_rgb = 3'b000; // BLACK remains black
-        9:   pix_rgb = 3'b001;
-        10:  pix_rgb = 3'b100;
-        11:  pix_rgb = 3'b101;
-        12:  pix_rgb = 3'b010;
-        13:  pix_rgb = 3'b011;
-        14:  pix_rgb = 3'b110;
-        15:  pix_rgb = 3'b111;
-    endcase
-end
 
 
 always @(*) // always_comb
@@ -219,13 +156,13 @@ begin
     case (cindex[3:0])
         // Normal color
         0:   rgb = 24'h000000; // BLACK
-        1:   rgb = 24'h0000DD; // BLUE
-        2:   rgb = 24'hD00000; // RED
-        3:   rgb = 24'hDD00DD; // MAGENTA
-        4:   rgb = 24'h00DD00; // GREEN
-        5:   rgb = 24'h00DDDD; // CYAN
-        6:   rgb = 24'hDDDD00; // YELLOW
-        7:   rgb = 24'hDDDDDD; // WHITE
+        1:   rgb = 24'h0000E0; // BLUE
+        2:   rgb = 24'hE00000; // RED
+        3:   rgb = 24'hE000E0; // MAGENTA
+        4:   rgb = 24'h00E000; // GREEN
+        5:   rgb = 24'h00E0E0; // CYAN
+        6:   rgb = 24'hE0E000; // YELLOW
+        7:   rgb = 24'hE0E0E0; // WHITE
         // "Bright" bit is set
         8:   rgb = 24'h000000; // BLACK remains black
         9:   rgb = 24'h0000FF;
@@ -238,14 +175,14 @@ begin
     endcase
 end
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// VGA RGB output drivers
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-assign VGA_R = disp_enable? pix_rgb[2]  : '0;
-assign VGA_G = disp_enable? pix_rgb[1]  : '0;
-assign VGA_B = disp_enable? pix_rgb[0]  : '0;
-
-hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(60), .AUDIO_RATE(48000), .AUDIO_BIT_WIDTH(16)) hdmi_(	
+hdmi #(
+		.VIDEO_ID_CODE(1), 
+		.VIDEO_REFRESH_RATE(60), 
+		.AUDIO_RATE(48000), 
+		.AUDIO_BIT_WIDTH(16), 
+		.VENDOR_NAME("Max10"),
+		.PRODUCT_DESCRIPTION("ZX Spectrum"),
+		.SOURCE_DEVICE_INFORMATION(8)) hdmi_(	
 	.clk_pixel_x5(clk_pix_x5), 
 	.clk_pixel(clk_pix), 
 	//.clk_audio(clk_audio), 
@@ -253,8 +190,8 @@ hdmi #(.VIDEO_ID_CODE(1), .VIDEO_REFRESH_RATE(60), .AUDIO_RATE(48000), .AUDIO_BI
 	//.audio_sample_word('{audio_sample_word_dampened, audio_sample_word_dampened}), 
 	.tmds(HDMI_TX), 
 	.tmds_clock(HDMI_CLK), 
-	.cx(cx), 
-	.cy(cy),
+	.cx(vga_hc), 
+	.cy(vga_vc),
   .frame_width(frame_width),
   .frame_height(frame_height),
   .screen_width(screen_width),

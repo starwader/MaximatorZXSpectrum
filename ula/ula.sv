@@ -25,8 +25,10 @@ module ula
 	 input wire ula_turbo,					// ULA Turbo speed (x2)
     output wire clk_vram,
     input wire nreset,              // Active low reset
-    output wire locked,             // PLL is locked signal
-
+    output wire locked,             // PLL is locked signal	
+	 input wire vga_en,
+	 input wire hdmi_en,
+	 
     //-------- CPU control ----------------------
     output wire clk_cpu,            // Generates CPU clock of 3.5 MHz
     output wire vs_nintr,           // Generates a vertical retrace interrupt
@@ -122,7 +124,46 @@ end
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Instantiate ULA's video subsystem
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-video video_( .* );
+
+wire [12:0] vram_address_vga;
+wire vs_nintr_vga;
+
+vga_video vga_video_( 
+   .clk_pix(vga_en ? clk_pix:'0),
+	.VGA_R(VGA_R),
+	.VGA_G(VGA_G),
+	.VGA_B(VGA_B),
+	.VGA_HS(VGA_HS),
+	.VGA_VS(VGA_VS),
+	.vs_nintr(vs_nintr_vga),
+	.vram_address(vram_address_vga),
+	.vram_data(vram_data),
+	.border(border),
+ );
+
+ 
+wire [12:0] vram_address_hdmi;
+wire vs_nintr_hdmi;
+
+hdmi_video hdmi_video_(
+   .clk_pix(hdmi_en ? clk_pix:'0),
+	.clk_pix_x5(hdmi_en ? clk_pix_x5:'0),
+
+	//.vs_nintr(vs_nintr),
+	.vram_address(vram_address_hdmi),
+	.vram_data(vram_data),
+	.border(border),
+	.HDMI_TX(HDMI_TX),
+	.HDMI_CLK(HDMI_CLK),
+	.HDMI_SDA(HDMI_SDA),
+	.HDMI_SCL(HDMI_SCL),
+	.HDMI_HPD(HDMI_HPD),
+	.vs_nintr(vs_nintr_hdmi),
+);
+
+//assign vram_address = (vram_address_hdmi & hdmi_en) | (vram_address_vga & vga_en);
+assign vram_address = vga_en ? vram_address_vga : vram_address_hdmi;
+assign vs_nintr = vga_en ? vs_nintr_vga : vs_nintr_hdmi;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Instantiate keyboard support

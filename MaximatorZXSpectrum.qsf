@@ -130,6 +130,8 @@ set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_TX_p[0]
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_TX_n[2]
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_TX_n[1]
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_TX_n[0]
+set_global_assignment -name SYSTEMVERILOG_FILE ula/vga_video.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ula/hdmi_video.sv
 set_global_assignment -name SYSTEMVERILOG_FILE utils/DifferentialSignal.sv
 set_global_assignment -name VERILOG_FILE ram16/ram16.v
 set_global_assignment -name QIP_FILE ram16/ram16.qip
@@ -147,7 +149,6 @@ set_global_assignment -name SYSTEMVERILOG_FILE hdmi/audio_info_frame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdmi/audio_clock_regeneration_packet.sv
 set_global_assignment -name SYSTEMVERILOG_FILE MaximatorZXSpectrum.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ula/zx_kbd.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ula/video.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ula/ula.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ula/ps2_kbd.sv
 set_global_assignment -name VHDL_FILE ula/i2s_intf.vhd

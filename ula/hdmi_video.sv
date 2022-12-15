@@ -26,16 +26,12 @@ module hdmi_video
     input wire clk_pix,         // Input pixel clock of 25.2 MHz
     input wire clk_pix_x5,         // Input pixel clock x5
 
-    output wire VGA_R,    // Output VGA R component
-    output wire VGA_G,    // Output VGA G component
-    output wire VGA_B,    // Output VGA B component
-    output reg VGA_HS,          // Output VGA horizontal sync
-    output reg VGA_VS,          // Output VGA vertical sync
-    output wire vs_nintr,       // Vertical retrace interrupt
+	 output wire vs_nintr,       // Vertical retrace interrupt
+
+	 input wire alternate_colors,
 
     output wire [12:0] vram_address,// Address request to the video RAM
     input wire [7:0] vram_data, // Data read from the video RAM
-
     input wire [2:0] border,     // Border color index value
 
 	 // HDMI output
@@ -58,7 +54,7 @@ wire [9:0] vga_vc = cy;// + 10'd83;
 
 
 //todo rename vga_hc and etc
-reg [25:0] frame;                // Frame counter, used for the flash attribute
+reg [24:0] frame;                // Frame counter, used for the flash attribute
 
 
 // Generate interrupt at around the time of the vertical retrace start
@@ -156,7 +152,7 @@ end
 
 assign flash  = attr[7];
 assign bright = attr[6];
-assign inverted = flash & frame[25];
+assign inverted = flash & frame[24];
 assign ink    = inverted? attr[5:3] : attr[2:0];
 assign paper  = inverted? attr[2:0] : attr[5:3];
 
@@ -174,7 +170,29 @@ wire [2:0] pix_rgb;
 
 always @(*) // always_comb
 begin
+	 if (alternate_colors)
     case (cindex[3:0])
+        // Normal color
+        0:   rgb = 24'h130b1a; // BLACK
+        1:   rgb = 24'h24285f; // BLUE
+        2:   rgb = 24'h9a001c; // RED
+        3:   rgb = 24'h994800; // MAGENTA
+        4:   rgb = 24'h68bb37; // GREEN
+        5:   rgb = 24'h3981ed; // CYAN
+        6:   rgb = 24'hab971f; // YELLOW
+        7:   rgb = 24'hb1acc7; // WHITE
+        // "Bright" bit is set
+        8:   rgb = 24'h130b1a; // BLACK remains black
+        9:   rgb = 24'h3232c8;
+        10:  rgb = 24'hea4545;
+        11:  rgb = 24'heb9b21;
+        12:  rgb = 24'ha1dc60;
+        13:  rgb = 24'haac1ff;
+        14:  rgb = 24'hd9d362;
+        15:  rgb = 24'he9e7e1;
+    endcase
+	 else
+	 case (cindex[3:0])
         // Normal color
         0:   rgb = 24'h000000; // BLACK
         1:   rgb = 24'h00007F; // BLUE

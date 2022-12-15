@@ -188,9 +188,11 @@ ula ula_(
 	 .clk_vram (clk_vram),
     .nreset (reset),            // KEY0 is reset; on DE1, keys are active low!
     .locked (locked),           // PLL is locked signal
-	 .vga_en(INT_EN),
-	 .hdmi_en(!INT_EN),
-    //-------- CPU control ----------------------
+	 .vga_en(!HDMI_HPD),
+	 .hdmi_en(HDMI_HPD),
+    .alternate_colors(INT_EN),
+	 
+	 //-------- CPU control ----------------------
     .clk_cpu (clk_cpu),         // Generates CPU clock of 3.5 MHz
     .vs_nintr (vs_nintr),       // Generates a vertical retrace interrupt
 

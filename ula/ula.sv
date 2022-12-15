@@ -28,6 +28,7 @@ module ula
     output wire locked,             // PLL is locked signal	
 	 input wire vga_en,
 	 input wire hdmi_en,
+	 input wire alternate_colors,		// Alternative HDMI Color palette
 	 
     //-------- CPU control ----------------------
     output wire clk_cpu,            // Generates CPU clock of 3.5 MHz
@@ -48,13 +49,6 @@ module ula
     output wire pressed,
 
     //-------- Audio (Tape player) --------------
-  /*  inout wire I2C_SCLK,
-    inout wire I2C_SDAT,
-    output wire AUD_XCK,
-    output wire AUD_ADCLRCK,
-    output wire AUD_DACLRCK,
-    output wire AUD_BCLK,
-    output wire AUD_DACDAT,*/
 	 output wire AUD_OUT,
     input wire AUD_IN,
     output reg beeper,
@@ -65,7 +59,7 @@ module ula
     output wire VGA_B,
     output reg VGA_HS,
     output reg VGA_VS,
-	 // HDMI output
+	 //-------- HDMI connector -------------------
 	 output [2:0] HDMI_TX,
 	 output HDMI_CLK,
 	 inout HDMI_SDA,
@@ -149,7 +143,7 @@ hdmi_video hdmi_video_(
    .clk_pix(hdmi_en ? clk_pix:'0),
 	.clk_pix_x5(hdmi_en ? clk_pix_x5:'0),
 
-	//.vs_nintr(vs_nintr),
+	.alternate_colors(alternate_colors),
 	.vram_address(vram_address_hdmi),
 	.vram_data(vram_data),
 	.border(border),

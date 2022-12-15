@@ -25,7 +25,10 @@ module hdmi_video
 (
     input wire clk_pix,         // Input pixel clock of 25.2 MHz
     input wire clk_pix_x5,         // Input pixel clock x5
-
+	 input wire clk_audio,		  // 48kHz
+	 
+	 input wire audio_signal,
+	 
 	 output wire vs_nintr,       // Vertical retrace interrupt
 
 	 input wire alternate_colors,
@@ -43,6 +46,19 @@ module hdmi_video
 
 );
 
+logic signed [15:0] audio_sample_channel = 0;
+
+always @(posedge clk_audio)
+begin
+	case (audio_signal)
+	  0:  begin
+				  audio_sample_channel <= (audio_sample_channel != -5000) ? (audio_sample_channel - 2500 ) : -5000;
+			end
+	  1:  begin
+				  audio_sample_channel <= (audio_sample_channel != 5000) ? (audio_sample_channel + 2500) : 5000;
+			end
+    endcase
+end
 
 logic [23:0] rgb = 24'd0;
 logic [9:0] cx,cy;
@@ -171,47 +187,47 @@ wire [2:0] pix_rgb;
 always @(*) // always_comb
 begin
 	 if (alternate_colors)
-    case (cindex[3:0])
-        // Normal color
-        0:   rgb = 24'h130b1a; // BLACK
-        1:   rgb = 24'h24285f; // BLUE
-        2:   rgb = 24'h9a001c; // RED
-        3:   rgb = 24'h994800; // MAGENTA
-        4:   rgb = 24'h68bb37; // GREEN
-        5:   rgb = 24'h3981ed; // CYAN
-        6:   rgb = 24'hab971f; // YELLOW
-        7:   rgb = 24'hb1acc7; // WHITE
-        // "Bright" bit is set
-        8:   rgb = 24'h130b1a; // BLACK remains black
-        9:   rgb = 24'h3232c8;
-        10:  rgb = 24'hea4545;
-        11:  rgb = 24'heb9b21;
-        12:  rgb = 24'ha1dc60;
-        13:  rgb = 24'haac1ff;
-        14:  rgb = 24'hd9d362;
-        15:  rgb = 24'he9e7e1;
-    endcase
+		case (cindex[3:0])
+			  // Normal color
+			  0:   rgb = 24'h000000; // BLACK
+			  1:   rgb = 24'h24285f; // BLUE
+			  2:   rgb = 24'h9a001c; // RED
+			  3:   rgb = 24'h994800; // MAGENTA
+			  4:   rgb = 24'h68bb37; // GREEN
+			  5:   rgb = 24'h3981ed; // CYAN
+			  6:   rgb = 24'hab971f; // YELLOW
+			  7:   rgb = 24'hb1acc7; // WHITE
+			  // "Bright" bit is set
+			  8:   rgb = 24'h000000; // BLACK remains black
+			  9:   rgb = 24'h3232c8;
+			  10:  rgb = 24'hea4545;
+			  11:  rgb = 24'heb9b21;
+			  12:  rgb = 24'ha1dc60;
+			  13:  rgb = 24'haac1ff;
+			  14:  rgb = 24'hd9d362;
+			  15:  rgb = 24'he9e7e1;
+		 endcase
 	 else
-	 case (cindex[3:0])
-        // Normal color
-        0:   rgb = 24'h000000; // BLACK
-        1:   rgb = 24'h00007F; // BLUE
-        2:   rgb = 24'h7F0000; // RED
-        3:   rgb = 24'h7F007F; // MAGENTA
-        4:   rgb = 24'h007F00; // GREEN
-        5:   rgb = 24'h007F7F; // CYAN
-        6:   rgb = 24'h7F7F00; // YELLOW
-        7:   rgb = 24'h7F7F7F; // WHITE
-        // "Bright" bit is set
-        8:   rgb = 24'h000000; // BLACK remains black
-        9:   rgb = 24'h0000FF;
-        10:  rgb = 24'hFF0000;
-        11:  rgb = 24'hFF00FF;
-        12:  rgb = 24'h00FF00;
-        13:  rgb = 24'h00FFFF;
-        14:  rgb = 24'hFFFF00;
-        15:  rgb = 24'hFFFFFF;
-    endcase
+		 case (cindex[3:0])
+			  // Normal color
+			  0:   rgb = 24'h000000; // BLACK
+			  1:   rgb = 24'h00007F; // BLUE
+			  2:   rgb = 24'h7F0000; // RED
+			  3:   rgb = 24'h7F007F; // MAGENTA
+			  4:   rgb = 24'h007F00; // GREEN
+			  5:   rgb = 24'h007F7F; // CYAN
+			  6:   rgb = 24'h7F7F00; // YELLOW
+			  7:   rgb = 24'h7F7F7F; // WHITE
+			  // "Bright" bit is set
+			  8:   rgb = 24'h000000; // BLACK remains black
+			  9:   rgb = 24'h0000FF;
+			  10:  rgb = 24'hFF0000;
+			  11:  rgb = 24'hFF00FF;
+			  12:  rgb = 24'h00FF00;
+			  13:  rgb = 24'h00FFFF;
+			  14:  rgb = 24'hFFFF00;
+			  15:  rgb = 24'hFFFFFF;
+		 endcase
 end
 
 hdmi #(
@@ -224,9 +240,9 @@ hdmi #(
 		.SOURCE_DEVICE_INFORMATION(8)) hdmi_(	
 	.clk_pixel_x5(clk_pix_x5), 
 	.clk_pixel(clk_pix), 
-	//.clk_audio(clk_audio), 
+	.clk_audio(clk_audio), 
 	.rgb(rgb), 
-	//.audio_sample_word('{audio_sample_word_dampened, audio_sample_word_dampened}), 
+	.audio_sample_word('{audio_sample_channel, audio_sample_channel}), 
 	.tmds(HDMI_TX), 
 	.tmds_clock(HDMI_CLK), 
 	.cx(cx), 

@@ -75,10 +75,12 @@ wire clk_pix;                       // VGA/HDMI pixel clock (25.2 MHz)
 wire clk_pix_x5;							// pixel clock x5
 wire clk_28;								
 wire clk_ula;                       // ULA master clock (14 MHz)
+wire clk_audio;
 
 assign clk_vram = clk_pix_x5;
 
-ula_pll pll_( .locked(locked), .inclk0(CLOCK_10), .c0(clk_pix), .c1(clk_pix_x5), .c2(clk_28) );
+
+ula_pll pll_( .locked(locked), .inclk0(CLOCK_10), .c0(clk_pix), .c1(clk_pix_x5), .c2(clk_28), .c3(clk_audio) );
 
 clocks clocks_( .clk_main(clk_28), .ula_turbo(ula_turbo), .cpu_turbo(cpu_turbo), .clk_ula(clk_ula), .clk_cpu(clk_cpu) );
 
@@ -142,7 +144,8 @@ wire vs_nintr_hdmi;
 hdmi_video hdmi_video_(
    .clk_pix(hdmi_en ? clk_pix:'0),
 	.clk_pix_x5(hdmi_en ? clk_pix_x5:'0),
-
+	.clk_audio(clk_audio),
+	.audio_signal(AUD_OUT),
 	.alternate_colors(alternate_colors),
 	.vram_address(vram_address_hdmi),
 	.vram_data(vram_data),

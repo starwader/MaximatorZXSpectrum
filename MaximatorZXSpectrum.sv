@@ -186,7 +186,7 @@ ula ula_(
 	 .ula_turbo (~ULA_TURBO_EN),
 	 .tape_sound(~TAPE_SOUND_EN),
 	 .clk_vram (clk_vram),
-    .nreset (reset),            // KEY0 is reset; on DE1, keys are active low!
+    .nreset (reset),           
     .locked (locked),           // PLL is locked signal
 	 .vga_en(!HDMI_HPD),
 	 .hdmi_en(HDMI_HPD),

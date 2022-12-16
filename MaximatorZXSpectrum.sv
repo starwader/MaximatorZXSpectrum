@@ -25,7 +25,7 @@ module MaximatorZXSpectrum
 	 input wire KEY_NMI,					// NMI button (pin D0, L16)
 	 input wire ULA_TURBO_EN,			// switch 28/14 mHz ULA (pin D11, D16)
 	 input wire CPU_TURBO_EN,			// turbo switch 2x CPU freq (pin D10, D15)
-	 input wire INT_EN,					// interrupt switch (pin D12, C15) (temporary hdmi/vga)
+	 input wire INT_EN,					// interrupt switch (pin D12, C15)
 	 input wire TAPE_SOUND_EN,			// mix tape sound switch (pin D13, C16)
 
     //-------- PS/2 Keyboard --------------------
@@ -190,7 +190,7 @@ ula ula_(
     .locked (locked),           // PLL is locked signal
 	 .vga_en(!HDMI_HPD),
 	 .hdmi_en(HDMI_HPD),
-    .alternate_colors(!INT_EN),
+    .alternate_colors(!ULA_TURBO_EN),
 	 
 	 //-------- CPU control ----------------------
     .clk_cpu (clk_cpu),         // Generates CPU clock of 3.5 MHz
@@ -268,7 +268,7 @@ wire nHALT;
 wire nBUSACK;
 
 wire nWAIT = 1;
-wire nINT = vs_nintr;//(INT_EN==0)? vs_nintr : '1;// SW1 disables interrupts and, hence, keyboard
+wire nINT = (INT_EN==0)? vs_nintr : '1;// SW1 disables interrupts and, hence, keyboard
 wire nNMI = KEY_NMI;                   // Pressing KEY1 issues a NMI
 wire nBUSRQ = 1;
 

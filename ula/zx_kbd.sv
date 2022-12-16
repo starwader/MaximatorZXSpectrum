@@ -48,7 +48,14 @@ module zx_keyboard
     input wire [7:0] scan_code, // PS/2 scan-code
     input wire scan_code_ready, // Active for 1 clock: a scan code is ready
     input wire scan_code_error, // Error receiving PS/2 keyboard data
-    output wire pressed         // Signal that a key is pressed
+    output wire pressed,         // Signal that a key is pressed
+	 
+	 // Additional turbo mode picker (F1-F4)
+	 output logic [1:0] turbo_mode = '0
+	 // F1 - 00 - X1
+	 // F2 - 01 - X2 CPU
+	 // F3 - 10 - X2 ULA
+	 // F4 - 11 - X4 (X2 ULA + X2 CPU)
 );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,6 +84,7 @@ assign key_row =
 always @(posedge clk or negedge nreset)
 begin
     if (!nreset) begin
+		  turbo_mode <= '0; 
         released <= 0;
         extended <= 0;
         shifted  <= 0;
@@ -124,6 +132,11 @@ begin
             else begin
                 // For each PS/2 scan-code, set the ZX keyboard matrix state
                 case (scan_code)
+					 	  8'h05:  turbo_mode <= 2'b00;
+						  8'h06:  turbo_mode <= 2'b01;
+						  8'h04:  turbo_mode <= 2'b10;
+					     8'h0C:  turbo_mode <= 2'b11;
+						          
                     8'h12:  shifted <= !released;       // Local SHIFT key (left)
                     8'h59:  shifted <= !released;       // Local SHIFT key (right)
 

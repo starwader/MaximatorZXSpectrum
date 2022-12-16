@@ -79,10 +79,11 @@ wire clk_audio;
 
 assign clk_vram = clk_pix_x5;
 
+wire [1:0] turbo_mode; 
 
 ula_pll pll_( .locked(locked), .inclk0(CLOCK_10), .c0(clk_pix), .c1(clk_pix_x5), .c2(clk_28), .c3(clk_audio) );
 
-clocks clocks_( .clk_main(clk_28), .ula_turbo(ula_turbo), .cpu_turbo(cpu_turbo), .clk_ula(clk_ula), .clk_cpu(clk_cpu) );
+clocks clocks_( .clk_main(clk_28), .ula_turbo(turbo_mode[1]), .cpu_turbo(turbo_mode[0]), .clk_ula(clk_ula), .clk_cpu(clk_cpu) );
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // The border color index
@@ -169,10 +170,11 @@ wire [7:0] scan_code;
 wire scan_code_ready;
 wire scan_code_error;
 
+
 ps2_keyboard ps2_keyboard_( .*, .clk(clk_cpu) );
 
 wire [4:0] key_row;
-zx_keyboard zx_keyboard_( .*, .clk(clk_cpu) );
+zx_keyboard zx_keyboard_( .*, .turbo_mode(turbo_mode), .clk(clk_cpu) );
 
 always_comb
 begin

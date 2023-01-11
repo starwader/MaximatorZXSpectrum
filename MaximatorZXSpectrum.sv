@@ -33,13 +33,15 @@ module MaximatorZXSpectrum
     input wire PS2_DAT,					// PS2 DAT (pin D1, J15)
 	 input wire AUDIO_IN,				// AUDIO IN (pin D8, E15)
 	 output wire AUDIO_OUT,				// AUDIO OUT (pin D9, E16)
+	 
     //-------- VGA connector --------------------
     output wire VGA_R,
     output wire VGA_G,
     output wire VGA_B,
     output reg VGA_HS,
     output reg VGA_VS,
-	   // HDMI output
+	 
+    //-------- HDMI connector -------------------
 	 output logic [2:0] HDMI_TX_p,
 	 output logic [2:0] HDMI_TX_n,
 	 output logic HDMI_CLK_p,
@@ -52,8 +54,7 @@ module MaximatorZXSpectrum
     //-------- Atari joystick mapped as Kempston
     //input wire [4:0] kempston,      // Input with weak pull-up
     //output wire kempston_gnd,       // Helps mapping to DB9 cable
-    //output wire [4:0] LEDG,         // Show the joystick state
-
+	 
     output wire [3:0] LEDGTOP       // Show additional information visually
 );
 `default_nettype none
@@ -62,8 +63,9 @@ wire clk_vram;
 	
 wire reset;
 wire locked;
+wire reset_kbd;
 //assign reset = locked & KEY0;
-assign reset = locked & KEY_RESET;
+assign reset = locked & KEY_RESET;//& !reset_kbd;
 // Export selected pins to the extension connector
 
 //assign kempston_gnd = 0;
@@ -116,9 +118,6 @@ begin
                     2'b00:  D[7:0] = ROM_DQ;
                     2'b01:  D[7:0] = ram_data;
                     2'b1?:  D[7:0] = 8'b11111111;//ram_data; // modified
-					 //casez (A[14])
-                //    '0:  D[7:0] = ROM_DQ;
-                //    '1:  D[7:0] = ram_data;
                 endcase
             end
         // ---------------------------------- IO read ----------------------------------
@@ -191,6 +190,7 @@ ula ula_(
 	 .vga_en(!HDMI_HPD),
 	 .hdmi_en(HDMI_HPD),
     .alternate_colors(!ULA_TURBO_EN),
+	 .reset_kbd(reset_kbd),
 	 
 	 //-------- CPU control ----------------------
     .clk_cpu (clk_cpu),         // Generates CPU clock of 3.5 MHz

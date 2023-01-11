@@ -51,7 +51,8 @@ module zx_keyboard
     output wire pressed,         // Signal that a key is pressed
 	 
 	 // Additional turbo mode picker (F1-F4)
-	 output logic [1:0] turbo_mode = '0
+	 output logic [1:0] turbo_mode = '0,
+	 output logic reset_kbd = 0
 	 // F1 - 00 - X1
 	 // F2 - 01 - X2 CPU
 	 // F3 - 10 - X2 ULA
@@ -61,6 +62,8 @@ module zx_keyboard
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 reg [4:0] keys [0:7];       // 8 rows of 5 bits each: contains 0 for a pressed key at a specific location, 1 otherwise
 
 reg released;               // Tracks "released" scan code (F0): contains 0 when a key is pressed, 1 otherwise
@@ -81,6 +84,27 @@ assign key_row =
     (~A[14] ? keys[6] : 5'b11111) &
     (~A[15] ? keys[7] : 5'b11111);
 
+
+reg reset_kbd_released = 1;
+reg [2:0] reset_cnt = '0;
+reg reset_kbd_pressed = 0;
+always @(*) begin
+	if(!reset_kbd_released & nreset) begin // f12 have been pressed
+		reset_kbd_pressed = 1;
+	end
+	else if(reset_kbd_pressed & !reset_kbd) begin  // f12 have been pressed and released
+	   reset_kbd = 1;	// start kbd reset signal
+		reset_cnt =0;
+	end
+	else if(reset_cnt == 3'b111) begin  // reset counter has ended
+		reset_kbd_pressed = 0;
+		reset_kbd = 0; // stop kbd reset signal
+	end
+	else if(reset_kbd) begin
+		reset_cnt = reset_cnt + '1; // increment counter
+	end
+end
+
 always @(posedge clk or negedge nreset)
 begin
     if (!nreset) begin
@@ -88,7 +112,7 @@ begin
         released <= 0;
         extended <= 0;
         shifted  <= 0;
-
+		  			  
         keys[0] <= '1;
         keys[1] <= '1;
         keys[2] <= '1;
@@ -132,10 +156,12 @@ begin
             else begin
                 // For each PS/2 scan-code, set the ZX keyboard matrix state
                 case (scan_code)
-					 	  8'h05:  turbo_mode <= 2'b00;
-						  8'h06:  turbo_mode <= 2'b01;
-						  8'h04:  turbo_mode <= 2'b10;
-					     8'h0C:  turbo_mode <= 2'b11;
+					 	  8'h05:  turbo_mode <= 2'b00;		  // F1
+						  8'h06:  turbo_mode <= 2'b01;		  // F2
+						  8'h04:  turbo_mode <= 2'b10;        // F3
+					     8'h0C:  turbo_mode <= 2'b11;        // F4
+						  
+						  8'h07:  reset_kbd_released <= released;     // F12
 						          
                     8'h12:  shifted <= !released;       // Local SHIFT key (left)
                     8'h59:  shifted <= !released;       // Local SHIFT key (right)

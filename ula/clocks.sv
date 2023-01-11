@@ -32,21 +32,19 @@ module clocks
 	 output wire clk_ula				// output 14/28
 );
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Generate 3.5 MHz Z80 CPU clock by dividing input clock of 14 MHz by 4
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 reg [0:0] counter;
-
 reg clk_main_by2;
 
+// Select 28 or 14 MHz clock for ULA depending on the ULA turbo switch
 always @(posedge clk_main)
 begin
 	clk_main_by2 <= ~clk_main_by2;
-
 end
 
 assign clk_ula = ula_turbo ? clk_main : clk_main_by2;
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Generate 3.5 MHz Z80 CPU clock by dividing input clock of 14 MHz by 4
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Note: In order to get to 3.5 MHz, the PLL needs to be set to generate 14 MHz
 // and then this divider-by-4 brings the effective clock down to 3.5 MHz
 // 1. always block at positive edge of clk_ula divides by 2

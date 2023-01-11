@@ -29,6 +29,7 @@ module ula
 	 input wire vga_en,
 	 input wire hdmi_en,
 	 input wire alternate_colors,		// Alternative HDMI Color palette
+	 output wire reset_kbd,
 	 
     //-------- CPU control ----------------------
     output wire clk_cpu,            // Generates CPU clock of 3.5 MHz
@@ -95,20 +96,12 @@ begin
     if (A[0]==0 && io_we==1) begin
         border <= D[2:0];
 		  // to_analog output
-		  AUD_OUT <=  (tape_sound ? (~AUD_IN):0) ^ D[4];
-        // EAR output (produces a louder sound)
-        //pcm_outl[14] <= D[4];       // Why [14] and not [15]? Less loud.
-        //pcm_outr[14] <= D[4];
-        // MIC (echoes the input)
-        //pcm_outl[13] <= D[3];
-        //pcm_outr[13] <= D[3];
-        // Let us hear the tape loading!
-        //pcm_outl[12] <= pcm_inl[14] | pcm_inr[14];
-        //pcm_outr[12] <= pcm_inl[14] | pcm_inr[14];
+		  AUD_OUT <=  (tape_sound ? (~AUD_IN):0) ^ D[4] ^ D[3];
         // Let us see the tape loading!
         beep <= (AUD_IN) ^ D[4] ^ D[3];
     end
 end
+
 // Show the beeper visually by dividing the frequency with some factor to generate LED blinks
 reg beep;                           // Beeper latch
 reg [6:0] beepcnt;                  // Beeper counter
@@ -153,9 +146,6 @@ hdmi_video hdmi_video_(
 	.border(border),
 	.HDMI_TX(HDMI_TX),
 	.HDMI_CLK(HDMI_CLK),
-	.HDMI_SDA(HDMI_SDA),
-	.HDMI_SCL(HDMI_SCL),
-	.HDMI_HPD(HDMI_HPD),
 	.vs_nintr(vs_nintr_hdmi),
 );
 

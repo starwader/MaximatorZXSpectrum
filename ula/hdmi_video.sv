@@ -24,7 +24,7 @@
 module hdmi_video
 (
     input wire clk_pix,         // Input pixel clock of 25.2 MHz
-    input wire clk_pix_x5,         // Input pixel clock x5
+    input wire clk_pix_x5,      // Input pixel clock x5
 	 input wire clk_audio,		  // 48kHz
 	 
 	 input wire audio_signal,
@@ -39,11 +39,7 @@ module hdmi_video
 
 	 // HDMI output
 	 output [2:0] HDMI_TX,
-	 output HDMI_CLK,
-	 inout HDMI_SDA,
-	 inout HDMI_SCL,
-	 input HDMI_HPD
-
+	 output HDMI_CLK
 );
 
 logic signed [15:0] audio_sample_channel = 0;
@@ -62,32 +58,32 @@ end
 
 logic [23:0] rgb = 24'd0;
 logic [9:0] cx,cy;
-//wire [9:0] vga_hc, vga_vc;
+//wire [9:0] cx, cy;
  logic [9:0] screen_start_x, screen_start_y, frame_width, frame_height, screen_width, screen_height;
 
-wire [9:0] vga_hc = cx;// + (frame_width-screen_width);// + 10'd208;
-wire [9:0] vga_vc = cy;// + 10'd83;
+//wire [9:0] cx = cx;// + (frame_width-screen_width);// + 10'd208;
+//wire [9:0] cy = cy;// + 10'd83;
 
 
-//todo rename vga_hc and etc
+//todo rename cx and etc
 reg [24:0] frame;                // Frame counter, used for the flash attribute
 
 
 // Generate interrupt at around the time of the vertical retrace start
-assign vs_nintr = (vga_vc=='0 && vga_hc[9:7]=='0)? '0 : '1;
+assign vs_nintr = (cy=='0 && cx[9:7]=='0)? '0 : '1;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // VGA active display area 640x480
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wire disp_enable;
-assign disp_enable = vga_hc>=(0) && vga_hc<(640) && vga_vc>=(0) && vga_vc<(480);
+assign disp_enable = cx>=(0) && cx<(640) && cy>=(0) && cy<(480);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Fetch screen data from RAM based on the current video counters
 // Spectrum resolution of 256x192 is line-doubled to 512x384 sub-frame
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wire screen_en;
-assign screen_en = vga_hc>=(64) && vga_hc<(576) && vga_vc>=(48) && vga_vc<(432);
+assign screen_en = cx>=(64) && cx<(576) && cy>=(48) && cy<(432);
 
 reg [7:0] bits_prefetch;        // Line bitmap data prefetch register
 reg [7:0] attr_prefetch;        // Attribute data prefetch register
@@ -99,15 +95,15 @@ reg [7:0] attr;                 // Current attribute data register
 wire [4:0] pix_x;               // Column 0-31
 wire [7:0] pix_y;               // Active display pixel Y coordinate
 // We use 16 clocks for 1 byte of display; also prefetch 1 byte (+16)
-wire [9:0] xd = vga_hc-10'd48;//-10'd192; // =vga_hc-208+16
+wire [9:0] xd = cx-10'd48;//-10'd192; // =cx-208+16
 assign pix_x = xd[8:4];         // Effectively divide by 16
-wire [9:0] yd = vga_vc-10'd48;//-10'd83;  // Lines are (also) doubled vertically
+wire [9:0] yd = cy-10'd48;//-10'd83;  // Lines are (also) doubled vertically
 assign pix_y = yd[8:1];         // Effectively divide by 2
 
 
 always @(posedge clk_pix)
 begin
-    case (vga_hc[3:0])
+    case (cx[3:0])
                 // Format the address into the bitmap which is a swizzle of coordinate parts
         10:     vram_address <= {pix_y[7:6], pix_y[2:0], pix_y[5:3], pix_x};
         12:     begin
@@ -129,7 +125,7 @@ always @(posedge clk_pix)
 begin
 	 frame <= frame + 5'b1;
 
-	 /*case (vga_vc)
+	 /*case (cy)
         (1): begin
 
                 frame  <= frame + 5'b1;
@@ -154,7 +150,7 @@ wire inverted;                  // Are the pixel's attributes inverted?
 // twice (required by this VGA clock rate)
 always @(*) // always_comb
 begin
-    case (vga_hc[3:1])
+    case (cx[3:1])
         0:      pixbit = bits[7];
         1:      pixbit = bits[6];
         2:      pixbit = bits[5];

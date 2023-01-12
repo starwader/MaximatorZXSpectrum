@@ -1,7 +1,7 @@
 # MaximatorZXSpectrum
 Quartus ZX Spectrum 16k project for KAMAMI Maximator (MAX10) evaluation board
 
-![ShieldWithMaximatorPhoto](blob:https://imgur.com/4df3f58c-ab17-4579-8f69-570b4339782c)
+![ShieldWithMaximatorPhoto](https://imgur.com/GexztU0)
 
 The goal of the project was to run ZX Spectrum on affordable FPGA evaluation board "Maximator" made by Polish company KAMAMI, using as much of its capabilities as possible, and extend them with an expansion shield.
 

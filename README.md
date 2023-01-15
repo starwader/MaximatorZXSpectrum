@@ -31,7 +31,10 @@ https://github.com/starwader/MaximatorZXSpectrumShield
 ![](https://i.imgur.com/dJVU1nX.png)
 
 #### HDL modules hierarchy/connections
-![](https://i.imgur.com/mrRHLcr.png)
+![](https://i.imgur.com/zn9eMDx.png)
+
+#### Available color palettes (Test Card)
+![](https://i.imgur.com/8AmzASd.png)
 
 ## To be done
 

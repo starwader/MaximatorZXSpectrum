@@ -33,9 +33,6 @@ https://github.com/starwader/MaximatorZXSpectrumShield
 #### HDL modules hierarchy/connections
 ![](https://i.imgur.com/mrRHLcr.png)
 
-#### Colors (Test Card)
-![](https://i.imgur.com/9EU6sEC.png)
-
 ## To be done
 
 - extend memory to 48k/128+ with external SRAM

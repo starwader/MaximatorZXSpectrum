@@ -58,3 +58,11 @@ https://github.com/hdl-util/hdmi
 Maximator website:
 
 https://maximator-fpga.org/
+
+
+## Gallery:
+![](https://i.imgur.com/AtHzkoO.png)
+![](https://i.imgur.com/qGC39a9.png)
+![](https://i.imgur.com/mrRHLcr.png)
+![](https://i.imgur.com/Q0c3y8E.png)
+![](https://i.imgur.com/84yosS4.png)

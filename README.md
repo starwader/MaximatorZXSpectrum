@@ -36,7 +36,6 @@ https://github.com/starwader/MaximatorZXSpectrumShield
 #### Colors (Test Card)
 ![](https://i.imgur.com/9EU6sEC.png)
 
-
 ## To be done
 
 - extend memory to 48k/128+ with external SRAM

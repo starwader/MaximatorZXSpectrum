@@ -28,10 +28,13 @@ https://github.com/starwader/MaximatorZXSpectrumShield
 - tape loading sound on/off switch
 
 #### Simplified circuit 
-![](https://i.imgur.com/AtHzkoO.png)
+![](https://i.imgur.com/dJVU1nX.png)
 
 #### HDL modules hierarchy/connections
 ![](https://i.imgur.com/mrRHLcr.png)
+
+#### Colors (Test Card)
+![](https://i.imgur.com/9EU6sEC.png)
 
 
 ## To be done
